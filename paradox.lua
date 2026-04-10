@@ -77,63 +77,43 @@ ExploitsGb:AddToggle("Desync", {
     Default = false,
     Callback = function(Value)
         _G.DesyncEnabled = Value
-        
-        -- Cleanup previous connection if it exists
         if desyncConnection then 
             desyncConnection:Disconnect() 
             desyncConnection = nil
         end
-
-        -- Cleanup Proxy if it exists from a previous run
         local existingProxy = workspace:FindFirstChild("AntiFlickerProxy")
         if existingProxy then existingProxy:Destroy() end
-
         if _G.DesyncEnabled then
             local RunService = game:GetService("RunService")
             local player = game.Players.LocalPlayer
             local camera = workspace.CurrentCamera
-            
-            -- Create the Proxy
             local proxy = Instance.new("Part")
             proxy.Name = "AntiFlickerProxy"
             proxy.Transparency = 1
             proxy.CanCollide = false
             proxy.Anchored = true
             proxy.Parent = workspace
-            
             camera.CameraSubject = proxy
-
             desyncConnection = RunService.Heartbeat:Connect(function()
                 local char = player.Character
                 local root = char and char:FindFirstChild("HumanoidRootPart")
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
-                
                 if root and hum and _G.DesyncEnabled then
                     local realCFrame = root.CFrame
                     proxy.CFrame = realCFrame
-                    
-                    -- The "Abyss" Teleport
                     root.CFrame = realCFrame * CFrame.new(0, 5000, 0)
-                    
                     RunService.RenderStepped:Wait() 
-                    
-                    -- Return to Ground
                     if root then
                         root.CFrame = realCFrame
                     end
                 end
             end)
         else
-            -- Shutdown Logic
             local player = game.Players.LocalPlayer
             local camera = workspace.CurrentCamera
-            
-            -- Reset Camera Subject to Humanoid
             if player.Character and player.Character:FindFirstChild("Humanoid") then
                 camera.CameraSubject = player.Character.Humanoid
             end
-            
-            -- Final Proxy cleanup
             local proxy = workspace:FindFirstChild("AntiFlickerProxy")
             if proxy then proxy:Destroy() end
         end
